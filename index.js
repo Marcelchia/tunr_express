@@ -359,5 +359,38 @@ app.post('/playlists', (request, response) => {
   })
 });
 
+app.get('/favorites', (request, response) => {
+  if (request.cookies.loggedIn === 'true') {
+    const username = request.cookies.username;
+    const user_id = request.cookies.user_id;
+
+    const user = {
+      username: username,
+      user_id: user_id
+    }
+
+    pool.query('SELECT songs.title FROM songs INNER JOIN favorites ON (favorites.song_id = songs.id) WHERE user_id=$1', [user_id], (error, result) => {
+      if (error) {
+        console.log('query error: ', error.message, error.stack);
+      } else {
+        const songList = result.rows;
+        response.render('favorites', {'songList': songList, 'user': user});
+      }
+    });
+  } else {
+    response.send('please log in');
+  }
+})
+
+app.get('/favorites/new', (request, response) => {
+  const username = request.cookies.username;
+  const user_id = request.cookies.user_id;
+
+  const user = {
+    username: username,
+    user_id: user_id
+  };
+
+
 process.on('SIGTERM', onClose);
 process.on('SIGINT', onClose);
